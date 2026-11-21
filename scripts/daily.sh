@@ -86,4 +86,5 @@ if ! git diff --cached --quiet -- "${paths[@]}"; then
   git commit --only -m "$subject" -- "${paths[@]}" || fail '信件提交失败'
 fi
 git push || fail '信件推送失败，下次运行会重试'
+python3 -I scripts/kindle.py || echo 'Kindle 推送失败，下次运行会补发'
 notify "今天的信到了：${subject#*：}"
