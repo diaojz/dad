@@ -21,6 +21,6 @@
 
 - 「写今天的信」= 按 `prompts/daily.md` 执行。信由 Claude（Opus）亲自写，不委派；站点/脚本类大改动委派 Codex。
 - 事实性论断必须查证并在「出处」标证据强度；查不到就降级为「我的判断」或删掉。
-- 小红书只存草稿（diao-xhs-publish），发布由用户手点。
+- 小红书发在「城北 | AI Coding」的「爸爸的信」合集（原创 + AI 合成声明，meta.json 默认已带）；只存草稿（diao-xhs-publish），发布由用户手点。存草稿前若已声明原创，别再点原创开关（会关掉）。
 - 改 `scripts/daily.sh` 后重新跑 `scripts/install-launchd.sh` 同步副本。
 - 内容 CC BY-NC-SA 4.0，代码 MIT。

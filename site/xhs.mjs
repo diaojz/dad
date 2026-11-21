@@ -64,7 +64,7 @@ try {
     content: post.content,
     topics: [...new Set([...post.content.matchAll(/(?:^|\s)#([^#\s]+)/gu)].map(match => match[1]))],
     images: files.map(file => join(directory, file)),
-    settings: post.settings ?? {}
+    settings: post.settings ?? { collection: "爸爸的信", original: true, ai_synthetic: true }
   };
   await writeFile(join(staging, 'meta.json'), JSON.stringify(meta, null, 2) + '\n');
   for (const file of files) await rename(join(staging, file), join(directory, file));

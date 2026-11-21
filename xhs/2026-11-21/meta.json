@@ -18,5 +18,9 @@
     "/Users/diaoye/Documents/dad/xhs/2026-11-21/06.png",
     "/Users/diaoye/Documents/dad/xhs/2026-11-21/07.png"
   ],
-  "settings": {}
+  "settings": {
+    "collection": "爸爸的信",
+    "original": true,
+    "ai_synthetic": true
+  }
 }
