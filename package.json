@@ -7,7 +7,9 @@
     "dev": "BASE=/ node site/dev.mjs"
   },
   "dependencies": {
+    "lxgw-wenkai-screen-webfont": "1.7.0",
     "marked": "^18.2.1",
+    "sharp": "^0.35.5",
     "yaml": "^2.9.1"
   }
 }

@@ -16,7 +16,7 @@ export async function readLetter(path) {
       !['校准', '补全', '确认'].includes(data.kind) || !match[2].trim()) {
     throw new Error(path + ' 的信件字段或正文无效');
   }
-  return { ...Object.fromEntries(fields.map(key => [key, data[key].trim()])), body: match[2] };
+  return { ...Object.fromEntries(fields.map(key => [key, data[key].trim()])), cover: typeof data.cover === 'string' ? data.cover.trim() : undefined, body: match[2] };
 }
 
 export async function loadLetters(root) {

@@ -2,6 +2,8 @@ import { mkdir, readFile, rm, writeFile, copyFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { marked } from 'marked';
+import sharp from 'sharp';
+import { coverFile, fontCSS, issue, titleLines } from './visuals.mjs';
 import { loadLetters } from './letters.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -27,41 +29,76 @@ const renderer = {
 };
 marked.use({ renderer });
 
-function page(title, content) {
+const github = 'https://github.com/diaojz/dad';
+const domains = new Map(Object.entries({
+  mind: '思维', craft: '手艺', work: '工作', money: '钱', body: '身体', people: '人',
+  family: '家', world: '世界', learn: '学习', self: '自我', nature: '自然'
+}));
+const domainName = code => domains.get(code) ?? code;
+const coverPath = (letter, thumb = false) =>
+  BASE + 'covers/' + (thumb ? 'thumbs/' : '') + encodeURIComponent(letter.slug) + '.jpg';
+const imageTag = (letter, thumb = false) => letter.hasCover
+  ? `<img src="${coverPath(letter, thumb)}" alt="${thumb ? '' : esc(letter.cover ?? '')}" ${thumb ? 'loading="lazy"' : 'fetchpriority="high"'}>`
+  : `<span class="cover-placeholder" aria-hidden="true"><span>${issue(letter)}</span></span>`;
+
+function page(title, content, letter) {
+  const socialImage = letter?.hasCover ? origin + coverPath(letter) : null;
   return `<!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${esc(title)}</title><link rel="stylesheet" href="${BASE}style.css">
+<title>${esc(title)}</title>
+<link rel="icon" href="${BASE}envelope.svg" type="image/svg+xml">
+<link rel="stylesheet" href="${fontCSS}"><link rel="stylesheet" href="${BASE}style.css">
+<meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(letter?.hook ?? subtitle)}">
+<meta name="twitter:card" content="${socialImage ? 'summary_large_image' : 'summary'}">
+${socialImage ? `<meta property="og:image" content="${esc(socialImage)}"><meta name="twitter:image" content="${esc(socialImage)}">` : ''}
 <link rel="alternate" type="application/rss+xml" title="${name}" href="${BASE}feed.xml"></head>
-<body><div class="frame"><header class="masthead"><a class="brand" href="${BASE}">${name}</a>
-<nav aria-label="站点"><a href="${BASE}about/">关于</a><a href="${BASE}feed.xml">RSS</a></nav></header>
-<main>${content}</main><footer>${subtitle}</footer></div></body></html>`;
+<body><div class="frame"><header class="masthead"><a class="brand" href="${BASE}"><img src="${BASE}envelope.svg" alt="">${name}</a>
+<nav aria-label="站点"><a href="${BASE}#archive">往期</a><a href="${BASE}about/">关于</a><a href="${BASE}feed.xml">RSS</a><a href="${github}">GitHub</a></nav></header>
+<main>${content}</main><footer class="site-footer"><p>一个 AI 扮演的父亲，每天写给一个写了十几年代码的儿子，只讲一个认知。</p>
+<a href="${github}/blob/main/prompts/father.md">父亲的性格写在 prompts/father.md，全部开源 ↗</a></footer></div></body></html>`;
 }
 
-const details = l => `<p class="details"><strong>第${esc(l.no)}封</strong><span>·</span><time datetime="${esc(l.date)}">${esc(l.date)}</time><span>·</span><span>${esc(l.domain)}</span><span>·</span><span>${esc(l.kind)}</span></p>`;
+const details = letter => `<p class="details">[ 第 ${issue(letter)} 封 · <time datetime="${esc(letter.date)}">${letter.date.replaceAll('-', '.')}</time> · ${esc(domainName(letter.domain))} · ${esc(letter.kind)} ]</p>`;
+const quote = letter => `<blockquote class="hook">“${esc(letter.hook)}”</blockquote>`;
+const monthNames = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二'];
 
 function home(letters) {
   const latest = letters[0];
-  if (!latest) return page(name, `<section class="hero"><p class="subtitle">${subtitle}</p><h1>第一封信还在路上</h1></section>`);
-  const months = Map.groupBy(letters.slice(1), letter => letter.date.slice(0, 7));
-  const domains = [...new Set(letters.slice(1).map(letter => letter.domain))].sort();
-  const archive = months.size ? `<section class="archive"><div class="archive-head"><h2>往期来信</h2>
-<label>领域 <select id="domain"><option value="">全部</option>${domains.map(domain => `<option>${esc(domain)}</option>`).join('')}</select></label></div>
+  if (!latest) return page(name, '<section class="hero"><h1>第一封信还在路上</h1></section><section id="archive"><h2>往期来信</h2></section>');
+  const months = Map.groupBy(letters, letter => letter.date.slice(0, 7));
+  const filters = [...new Set(letters.map(letter => letter.domain))].sort();
+  const [year, month, day] = latest.date.split('-');
+  return page(name, `<section class="hero">
+<a class="art hero-art" href="${letterPath(latest)}" aria-label="拆信：${esc(latest.title)}">${imageTag(latest)}</a>
+<div class="hero-copy"><p class="details">[ 第 ${issue(latest)} 封 ]</p>
+<time class="calendar" datetime="${latest.date}"><span class="day">${day}</span><span>${monthNames[Number(month) - 1]}月 · ${year}</span></time>
+<h1>${titleLines(latest.title, esc)}</h1>${quote(latest)}
+<a class="button" href="${letterPath(latest)}">拆信 <span aria-hidden="true">↗</span></a></div></section>
+<section class="archive" id="archive"><div class="archive-head"><h2>往期来信</h2>
+<div id="domain" class="filters" aria-label="按领域筛选" hidden><button type="button" data-filter="" aria-pressed="true">全部</button>${filters.map(code => `<button type="button" data-filter="${esc(code)}" aria-pressed="false">${esc(domainName(code))}</button>`).join('')}</div></div>
 ${[...months].map(([month, group]) => `<section class="month"><h3>${month.slice(0, 4)} 年 ${Number(month.slice(5))} 月</h3>
-<ul>${group.map(letter => `<li data-domain="${esc(letter.domain)}">${details(letter)}<a href="${letterPath(letter)}">${esc(letter.title)}</a></li>`).join('')}</ul></section>`).join('')}</section>
-<script src="${BASE}archive.js" defer></script>` : '';
-  return page(name, `<section class="hero"><p class="subtitle">${subtitle}</p>${details(latest)}
-<h1>${esc(latest.title)}</h1><p class="hook">${esc(latest.hook)}</p>
-<a class="button" href="${letterPath(latest)}">读信</a></section>${archive}`);
+<ul>${group.map(letter => `<li data-domain="${esc(letter.domain)}"><a href="${letterPath(letter)}">
+<div class="art thumbnail">${imageTag(letter, true)}</div><p class="details archive-details"><span>第 ${issue(letter)} 封</span><time datetime="${letter.date}">${letter.date.replaceAll('-', '.')}</time><span>${esc(domainName(letter.domain))}</span></p><strong>${esc(letter.title)}</strong></a></li>`).join('')}</ul></section>`).join('')}</section>
+<script src="${BASE}archive.js" defer></script>`, latest);
+}
+
+function renderSources(tokens) {
+  return marked.parser(tokens.map(token => {
+    if (token.type !== 'list') return token;
+    return { ...token, ordered: true };
+  })).replace(/证据强度：(?:<strong>)?(有争议|强|中|判断)(?:<\/strong>)?|我的判断/g,
+    (match, strength) => `<span class="evidence evidence-${strength ?? '判断'}">${strength ?? match}</span>`);
 }
 
 function renderLetter(letter, previous, next) {
-  const reply = new URL('https://github.com/diaojz/dad/issues/new');
+  const reply = new URL(github + '/issues/new');
   reply.searchParams.set('labels', 'reply');
   reply.searchParams.set('title', `回信：第${letter.no}封 ${letter.title}`);
   const tokens = marked.lexer(letter.body);
   const cards = new Map();
   const prose = [];
   const sources = [];
+  let signature = '';
   let section = prose;
   for (const token of tokens) {
     if (token.type === 'heading' && token.depth <= 2) {
@@ -72,15 +109,27 @@ function renderLetter(letter, previous, next) {
         continue;
       }
     }
+    if (section !== sources && token.type === 'paragraph' && token.text.trim() === '爸爸') {
+      signature = '<p class="signature">爸爸</p>';
+      continue;
+    }
     section.push(token);
   }
-  const neighbor = (item, label) => item ? `<a href="${letterPath(item)}"><small>${label}</small>${esc(item.title)}</a>` : '<span></span>';
-  return page(letter.title + ' · ' + name, `<article class="letter"><header>${details(letter)}<h1>${esc(letter.title)}</h1></header>
-<div class="prose">${marked.parser(prose)}</div>
-${[...cards].map(([heading, body]) => `<section class="note prose"><h2>${heading}</h2>${marked.parser(body)}
-${heading === '我想问你' ? `<a class="button" href="${esc(reply.href)}">回信</a>` : ''}</section>`).join('')}
-${sources.length ? `<section class="prose sources">${marked.parser(sources)}</section>` : ''}
-</article><nav class="neighbors" aria-label="相邻信件">${neighbor(previous, '上一封')}${neighbor(next, '下一封')}</nav>`);
+  const neighbor = (item, label) => item ? `<a href="${letterPath(item)}"><div class="art thumbnail">${imageTag(item, true)}</div><span><small>${label}</small>${esc(item.title)}</span></a>` : '';
+  const neighbors = previous || next ? `<nav class="neighbors" aria-label="相邻信件">${neighbor(previous, '上一封')}${neighbor(next, '下一封')}</nav>` : '';
+  return page(letter.title + ' · ' + name, `<article class="letter">
+<div class="art letter-art">${imageTag(letter)}</div>
+<header class="letter-head">${details(letter)}<h1>${titleLines(letter.title, esc)}</h1>${quote(letter)}</header>
+<div class="letter-paper">
+<div class="prose">${marked.parser(prose).replace(/^<p>儿子[：:]<\/p>/, '<p class="salutation">儿子：</p>')}</div>
+${[...cards].map(([heading, body]) => {
+    const question = heading === '我想问你';
+    return `<section class="note prose ${question ? 'postcard' : 'action'}"><h2>${heading}</h2>${marked.parser(body)}
+${question ? `<a class="stamp" href="${esc(reply.href)}">回信 ↗</a>` : ''}</section>`;
+  }).join('')}
+${signature}
+${sources.length ? `<section class="sources">${renderSources(sources)}</section>` : ''}
+</div></article>${neighbors}`, letter);
 }
 
 async function write(path, content) {
@@ -92,8 +141,23 @@ async function write(path, content) {
 const letters = await loadLetters(root);
 const about = await readFile(join(root, 'README.md'), 'utf8');
 await rm(dist, { force: true, recursive: true });
+await mkdir(join(dist, 'covers', 'thumbs'), { recursive: true });
+await Promise.all(letters.map(async letter => {
+  const source = coverFile(root, letter.slug);
+  const target = join(dist, 'covers', letter.slug + '.jpg');
+  try {
+    await copyFile(source, target);
+  } catch (error) {
+    if (error.code === 'ENOENT') return;
+    throw error;
+  }
+  await sharp(source).resize(640, null, { withoutEnlargement: true })
+    .jpeg({ quality: 80 }).toFile(join(dist, 'covers', 'thumbs', letter.slug + '.jpg'));
+  letter.hasCover = true;
+}));
+await copyFile(join(here, 'static', 'envelope.svg'), join(dist, 'envelope.svg'));
 await write('index.html', home(letters));
-await write('about/index.html', page('关于 · ' + name, `<article class="letter prose">${marked.parse(about)}</article>`));
+await write('about/index.html', page('关于 · ' + name, `<article class="letter-paper about prose">${marked.parse(about)}</article>`));
 await write('404.html', page('找不到这封信 · ' + name, `<section class="hero"><h1>找不到这封信</h1><a class="button" href="${BASE}">返回首页</a></section>`));
 for (const [index, letter] of letters.entries()) {
   await write(join('letters', letter.slug, 'index.html'), renderLetter(letter, letters[index + 1], letters[index - 1]));

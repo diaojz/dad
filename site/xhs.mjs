@@ -1,7 +1,8 @@
 import { mkdtemp, readFile, readdir, rename, rm, writeFile } from 'node:fs/promises';
-import { dirname, join, resolve } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
+import { coverFile, fontCSS, issue, titleLines } from './visuals.mjs';
 import { readLetter } from './letters.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -21,7 +22,14 @@ if (!requiredText(post.title) || !requiredText(post.content) ||
 }
 if (!/^letters\/[^/\\]+\.md$/.test(post.letter ?? '')) throw new Error('post.json 的 letter 必须指向 letters/ 下的信件');
 const letter = await readLetter(join(root, post.letter));
-const signature = `爸爸的信 · 第${letter.no}封`;
+const signature = '城北 · 爸爸的信';
+const painting = await readFile(coverFile(root, basename(post.letter, '.md'))).catch(error => {
+  if (error.code === 'ENOENT') return null;
+  throw error;
+});
+const artwork = painting
+  ? `<div class="art"><img src="data:image/jpeg;base64,${painting.toString('base64')}" alt=""></div>`
+  : `<div class="art placeholder"><span>${issue(letter)}</span></div>`;
 const esc = value => value.replace(/[&<>]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[char]);
 const css = await readFile(join(here, 'xhs.css'), 'utf8');
 const files = post.cards.map((_, index) => String(index + 1).padStart(2, '0') + '.png');
@@ -32,13 +40,13 @@ const pages = post.cards.map((card, index) => {
   const cover = card.type === 'cover';
   const heading = cover ? card.headline : card.heading;
   const text = cover ? card.sub : card.text;
-  if (!requiredText(heading) || !requiredText(text) || (cover && !requiredText(card.kicker))) {
+  if (!requiredText(heading) || !requiredText(text)) {
     throw new Error(`第 ${index + 1} 张卡片缺少文案`);
   }
   return `<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>${esc(heading)}</title>
-<style>${css}</style><body><main class="${card.type}"><div class="layout"><div class="copy">
-${cover ? `<p class="kicker">${esc(card.kicker)}</p>` : ''}
-<h1>${esc(heading)}</h1><p class="text">${esc(text)}</p></div></div>
+<link rel="stylesheet" href="${fontCSS}"><style>${css}</style><body><main class="${card.type}">${artwork}<div class="layout"><div class="copy">
+${cover ? `<p class="kicker">${signature} · 第${letter.no}封</p>` : ''}
+<h1>${cover ? titleLines(heading, esc) : esc(heading)}</h1><p class="text">${esc(text)}</p></div></div>
 <footer>${signature}</footer></main></body></html>`;
 });
 

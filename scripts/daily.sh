@@ -76,11 +76,70 @@ console.log(`第${letter.no}封：${letter.title}`);
 NODE
 )" || fail '今天的信格式校验失败'
 
+make_cover() {
+  local letter="$1" target="$2" prompt staging generated
+  staging="$(mktemp -d "$REPO/.cover-XXXXXX")" || return 1
+  generated="$staging/${target##*/}"
+  prompt="$(node --input-type=module - "$letter" "$generated" <<'NODE'
+import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { readLetter } from './site/letters.mjs';
+
+const letter = await readLetter(process.argv[2]);
+if (!letter.cover) process.exit(0);
+const rules = await readFile('prompts/cover.md', 'utf8');
+const start = rules.indexOf('## 统一画风');
+const end = rules.indexOf('## 每封信的场景', start);
+if (start < 0 || end < 0) throw new Error('未找到封面画风与构图');
+const target = resolve(process.argv[3]);
+console.log(`只用原生 image_gen__imagegen 工具生成一幅封面画。禁止第三方 API、脚本生图或直调 OPENAI_API_KEY。原生工具不可用或调用失败就报错退出。
+${rules.slice(start, end).trim()}
+
+本封场景：${letter.cover}
+
+检查画面里没有文字、签名和水印。将原生工具生成的图片转成质量 85、长边不超过 1600 像素的 JPG，保存到 ${target}。只写入这一个项目文件，不提交、不推送。`);
+NODE
+)" || { rmdir "$staging"; return 1; }
+  if [[ -z "$prompt" ]]; then
+    rmdir "$staging"
+    echo "信件没有 cover 字段，使用封面兜底：$letter"
+    return 0
+  fi
+  if printf '%s\n' "$prompt" | codex exec --skip-git-repo-check -C "$REPO" \
+    -c approval_policy=never -c sandbox_mode=workspace-write - &&
+    node --input-type=module - "$generated" <<'NODE'
+import sharp from 'sharp';
+
+const image = sharp(process.argv[2]);
+const { width, height, format } = await image.metadata();
+if (format !== 'jpeg' || Math.max(width, height) > 1600) throw new Error('封面格式或尺寸不符');
+await image.raw().toBuffer();
+NODE
+  then
+    if mkdir -p "$(dirname "$target")" && mv -n "$generated" "$target"; then
+      rm -f "$generated"
+      rmdir "$staging"
+      printf '已生成封面：%s\n' "$target"
+      return 0
+    fi
+  fi
+  rm -f "$generated"
+  rmdir "$staging"
+  return 1
+}
+
+slug="${letters[0]##*/}"
+cover="site/static/covers/${slug%.md}.jpg"
+if [[ ! -s "$cover" ]]; then
+  make_cover "${letters[0]}" "$cover" || echo "封面生成失败，继续构建：$cover"
+fi
+
 node site/xhs.mjs "$today" || echo '小红书卡片渲染失败，继续构建站点'
 npm run build || fail '站点构建失败，今天的信未同步'
 
 paths=(letters curriculum son)
 if [[ -d xhs ]] || [[ -n "$(git ls-files -- xhs)" ]]; then paths+=(xhs); fi
+if [[ -d site/static/covers ]] || [[ -n "$(git ls-files -- site/static/covers)" ]]; then paths+=(site/static/covers); fi
 git add -A -- "${paths[@]}" || fail '信件暂存失败'
 if ! git diff --cached --quiet -- "${paths[@]}"; then
   git commit --only -m "$subject" -- "${paths[@]}" || fail '信件提交失败'
