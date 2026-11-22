@@ -67,7 +67,7 @@ try {
   const meta = {
     title: post.title,
     content: post.content,
-    topics: [...new Set([...post.content.matchAll(/(?:^|\s)#([^#\s]+)/gu)].map(match => match[1]))],
+    topics: post.topics ?? [...new Set([...post.content.matchAll(/(?:^|\s)#([^#\s]+)/gu)].map(match => match[1]))],
     images: files.map(file => join(directory, file)),
     settings: post.settings ?? { collection: "爸爸的信", original: true, ai_synthetic: true }
   };
