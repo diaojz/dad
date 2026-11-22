@@ -2,8 +2,11 @@
 set -euo pipefail
 shopt -s nullglob
 
-REPO=/Users/diaoye/Documents/dad
 STATE="$HOME/.claude/scripts/dad-daily"
+# launchd 进程读不了 ~/Documents（macOS TCC，报 Operation not permitted），
+# 所以定时任务在 dotfolder 里维护一份独立克隆，干完直接推 GitHub；~/Documents/dad 用时先 git pull。
+REPO="$STATE/repo"
+REMOTE=https://github.com/diaojz/dad.git
 export PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 latest_node=''
 for candidate in "$HOME"/.nvm/versions/node/v*/bin; do
@@ -15,6 +18,11 @@ for candidate in "$HOME"/.nvm/versions/node/v*/bin; do
   fi
 done
 if [[ -n "$latest_node" ]]; then export PATH="$latest_node:$PATH"; fi
+# launchd 不加载 shell 配置，没有代理变量；本机 Clash 在 7890 时补上，否则 GitHub/Claude 连不上。
+if nc -z 127.0.0.1 7890 2>/dev/null; then
+  export HTTP_PROXY=http://127.0.0.1:7890 HTTPS_PROXY=http://127.0.0.1:7890 ALL_PROXY=http://127.0.0.1:7890
+  export http_proxy=$HTTP_PROXY https_proxy=$HTTPS_PROXY all_proxy=$ALL_PROXY
+fi
 
 today="$(date +%F)"
 mkdir -p "$STATE/logs"
@@ -35,6 +43,7 @@ fail() {
   exit 1
 }
 
+[[ -d "$REPO/.git" ]] || git clone "$REMOTE" "$REPO" || fail '克隆仓库失败'
 cd "$REPO"
 git pull --rebase || echo 'git pull --rebase 失败，继续处理本地内容'
 npm ci || fail '依赖安装失败，今天的信未同步'

@@ -15,7 +15,7 @@
 | `letters/` | 每日信件 `YYYY-MM-DD-slug.md` |
 | `xhs/<date>/` | 小红书改编稿 post.json + 渲染卡片（png 不入库） |
 | `site/` | 静态站构建 + 小红书卡片渲染器 |
-| `scripts/daily.sh` | 每日流水线；安装副本在 `~/.claude/scripts/dad-daily/run.sh`（launchd 06:30，TCC 限制不能直接跑 Documents 下脚本） |
+| `scripts/daily.sh` | 每日流水线；安装副本在 `~/.claude/scripts/dad-daily/run.sh`（launchd 06:30）。launchd 读不了 ~/Documents，所以它在 `~/.claude/scripts/dad-daily/repo` 用独立克隆干活并直接推 GitHub——**在 ~/Documents/dad 动手前先 `git pull`** |
 
 ## 规则
 
