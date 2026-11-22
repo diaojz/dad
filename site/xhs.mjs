@@ -1,7 +1,7 @@
 import { mkdtemp, readFile, readdir, rename, rm, writeFile } from 'node:fs/promises';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { spawnSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { coverFile, fontCSS, issue, titleLines } from './visuals.mjs';
 import { readLetter } from './letters.mjs';
 
@@ -44,7 +44,7 @@ const pages = post.cards.map((card, index) => {
     throw new Error(`第 ${index + 1} 张卡片缺少文案`);
   }
   return `<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>${esc(heading)}</title>
-<link rel="stylesheet" href="${fontCSS}"><style>${css}</style><body><main class="${card.type}">${artwork}<div class="layout"><div class="copy">
+<link rel="stylesheet" href="${fontCSS}"><style>${css}</style><body><main class="${card.type}">${artwork}${cover ? `<div class="postmark" aria-hidden="true"><span>县 城</span><span>${letter.date.replaceAll('-', '.')}</span><span>第 ${issue(letter)} 封</span></div>` : ''}<div class="layout"><div class="copy">
 ${cover ? `<p class="kicker">${signature} · 第${letter.no}封</p>` : ''}
 <h1>${cover ? titleLines(heading, esc) : esc(heading)}</h1><p class="text">${esc(text)}</p></div></div>
 <footer>${signature}</footer></main></body></html>`;
@@ -52,13 +52,18 @@ ${cover ? `<p class="kicker">${signature} · 第${letter.no}封</p>` : ''}
 
 const staging = await mkdtemp(join(directory, '.render-'));
 try {
-  const result = spawnSync(process.env.PYTHON ?? 'python3', [join(here, 'xhs-shot.py'), staging], {
-    input: JSON.stringify(pages),
-    encoding: 'utf8',
-    stdio: ['pipe', 'inherit', 'inherit']
+  await writeFile(join(staging, 'pages.json'), JSON.stringify(pages));
+  await new Promise((resolve, reject) => {
+    const renderer = spawn(process.env.PYTHON ?? 'python3', [join(here, 'xhs-shot.py'), staging], {
+      stdio: ['ignore', 'inherit', 'inherit'],
+      timeout: 120_000
+    });
+    renderer.once('error', reject);
+    renderer.once('close', (code, signal) => {
+      if (code === 0) resolve();
+      else reject(new Error(`Chromium 卡片渲染失败（${signal ?? code}）`));
+    });
   });
-  if (result.error) throw result.error;
-  if (result.status !== 0) throw new Error('Chromium 卡片渲染失败');
   const meta = {
     title: post.title,
     content: post.content,

@@ -4,7 +4,7 @@
 
 ## 步骤
 
-1. **读背景**（必须全读）：`prompts/father.md`、`son/profile.md`、`son/replies/` 下最近 7 天的文件、`curriculum/map.md`、`curriculum/ledger.md`。
+1. **读背景**（必须全读）：`prompts/persona.md`、`prompts/father.md`、`curriculum/memories.md`、`son/profile.md`、`son/replies/` 下最近 7 天的文件、`curriculum/map.md`、`curriculum/ledger.md`。
 2. **今天已经写过就停**：`letters/` 下已有今天日期开头的文件 → 直接结束，不重写。
 3. **选题**：
    - 有新回信 → 优先回应（追问、认错、深化），回应可以是今天这封信的开头一段，也可以整封都是。
@@ -24,7 +24,7 @@ kind: <校准|补全|确认>
 cover: <封面画场景，按 prompts/cover.md 写，≤60 字>
 ---
 
-<正文 900–1500 字。不加「正文」标题。可用少量 ## 小标题（最多 3 个），也可以不用。>
+<正文 900–1500 字，以「儿子：」开头，以「爸爸」落款，可加「又：……」。正文里不用任何 ## 小标题。>
 
 ## 今天做一件事
 
@@ -39,7 +39,7 @@ cover: <封面画场景，按 prompts/cover.md 写，≤60 字>
 - <作者/机构，《标题》，年份，链接（如有）> —— <一句话说它支撑了哪个论断，证据强度：强/中/有争议>
 ```
 
-6. **自检**（逐条过，不过就改）：只讲了一件事？开头是具体场景？说了旧路径为什么曾经对？有没有一句没东西撑的漂亮话？有没有泄露隐私（公司名/项目名/家人姓名）？字数在范围内？
-7. **登记**：在 `curriculum/ledger.md` 末尾追加一行：`| no | date | domain | kind | title | 一句话核心认知 |`。
+6. **自检**（逐条过，不过就改）：只讲了一件事？开头是具体场景？说了旧路径为什么曾经对？有没有一句没东西撑的漂亮话？有没有泄露隐私（公司名/项目名/家人姓名）？字数在范围内？往事和 persona.md 时间线、memories.md 对得上吗？有没有一句「像 AI 写的」？
+7. **登记**：在 `curriculum/ledger.md` 末尾追加一行：`| no | date | domain | kind | title | 一句话核心认知 |`；讲了新往事的，在 `curriculum/memories.md` 追加 `| 第N封 | 往事 | 关键细节 |`。
 8. **小红书改编**：按 `prompts/xhs.md` 生成 `xhs/YYYY-MM-DD/post.json`。
 9. 不要 commit，不要 push，不要发布。后续由脚本处理。最后只输出一行：`OK <文件路径>`。

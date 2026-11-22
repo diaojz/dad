@@ -44,7 +44,7 @@ FIT = """() => {
 
 def main():
     output = Path(sys.argv[1])
-    pages = json.load(sys.stdin)
+    pages = json.loads((output / 'pages.json').read_text(encoding='utf-8'))
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(headless=True)
         page = browser.new_page(viewport={"width": 1080, "height": 1440}, device_scale_factor=1)

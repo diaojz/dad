@@ -41,3 +41,28 @@ h1::after { content: ''; display: block; width: 100px; height: 5px; margin-top: 
 .question .copy::after { content: '回信'; position: absolute; top: 38px; right: 35px; padding: 16px 10px; border: 3px dashed var(--accent); color: var(--deep-accent); font: 32px/1 var(--hand); transform: rotate(7deg); }
 footer { justify-self: end; align-self: center; margin-right: 64px; color: #586958; font: 26px/1.4 var(--serif); }
 .action .copy { width: calc(100% - 24px); margin-inline: auto; }
+.cover { position: relative; }
+.cover { background: var(--grain), radial-gradient(ellipse at center, #f9f4e9 48%, #e8dbc8); }
+.postmark {
+  position: absolute;
+  top: 735px;
+  right: 67px;
+  width: 164px;
+  height: 164px;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  border: 2px solid var(--deep-accent);
+  outline: 1px solid var(--deep-accent);
+  outline-offset: -8px;
+  border-radius: 50%;
+  background: #f4eadd;
+  color: var(--deep-accent);
+  font: 21px/1.35 var(--hand);
+  transform: rotate(11deg);
+}
+.postmark span:nth-child(2) {
+  border-block: 1px solid currentColor;
+  padding: 4px 0;
+  font-family: ui-monospace, monospace;
+}
