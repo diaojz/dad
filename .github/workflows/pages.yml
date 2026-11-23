@@ -3,6 +3,8 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    - cron: '5 16 * * *' # 北京时间 00:05，让提前写好的信到日子自动上站
 permissions:
   contents: read
   pages: write

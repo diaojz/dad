@@ -4,9 +4,18 @@ here="$(cd "$(dirname "$0")" && pwd)"
 state="$HOME/.claude/scripts/dad-daily"
 agents="$HOME/Library/LaunchAgents"
 label=com.diaojz.dad-daily
+domain="gui/$(id -u)"
+publisher="/Users/diaoye/Documents/BD/App Store/xhs/xhs-publish-cdp.py"
 
-printf '# 安装命令（按需手动执行）\n'
-printf 'mkdir -p %q %q\n' "$state/logs" "$agents"
-printf 'install -m 755 %q %q\n' "$here/daily.sh" "$state/run.sh"
-printf 'install -m 644 %q %q\n' "$here/$label.plist.template" "$agents/$label.plist"
-printf 'launchctl bootstrap gui/$(id -u) %q\n' "$agents/$label.plist"
+if [[ ! -f "$publisher" ]]; then
+  printf '找不到发布脚本：%s\n' "$publisher" >&2
+  exit 1
+fi
+
+mkdir -p "$state/logs" "$state/done" "$agents"
+install -m 644 "$publisher" "$state/xhs-publish-cdp.py"
+install -m 755 "$here/daily.sh" "$state/run.sh"
+install -m 644 "$here/$label.plist.template" "$agents/$label.plist"
+launchctl bootout "$domain/$label" 2>/dev/null || true
+launchctl bootstrap "$domain" "$agents/$label.plist"
+printf '已安装每日触发时间（Mac 系统时区）：06:30、08:30、10:30、13:00、17:00、21:00\n'

@@ -191,7 +191,9 @@ async function write(path, content) {
   await writeFile(target, content);
 }
 
-const letters = await loadLetters(root);
+// 只发布北京时间今天及以前的信；提前写好的信到日子才上站和进 RSS（Kindle 读 RSS）。
+const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Shanghai' }).format(new Date());
+const letters = (await loadLetters(root)).filter(letter => letter.date <= today);
 
 await rm(dist, { force: true, recursive: true });
 await mkdir(join(dist, 'covers', 'thumbs'), { recursive: true });

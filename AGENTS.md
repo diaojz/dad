@@ -20,7 +20,7 @@
 | `site/` | 静态站构建 + 小红书卡片渲染器；`site/static/covers/` 封面图，`site/static/father.jpg` 爸爸页画像 |
 | `scripts/kindle.py` | 把 RSS 里未推送的信做成 EPUB 发 Kindle（daily.sh 末尾调用，已发记录在 `~/.claude/scripts/dad-daily/kindle-sent.txt`） |
 | `share/moments/` | 朋友圈推广素材（配图 + 文案） |
-| `scripts/daily.sh` | 每日流水线；安装副本在 `~/.claude/scripts/dad-daily/run.sh`（launchd 06:30）。launchd 读不了 ~/Documents，所以它在 `~/.claude/scripts/dad-daily/repo` 用独立克隆干活并直接推 GitHub——**在 ~/Documents/dad 动手前先 `git pull`** |
+| `scripts/daily.sh` | 每日流水线；安装副本在 `~/.claude/scripts/dad-daily/run.sh`（launchd 每日多次触发，按 `done` 标记补做并重试网络操作，末尾用 `scripts/xhs_draft.py` 自动存小红书草稿，发布仍由用户手点）。launchd 读不了 ~/Documents，所以它在 `~/.claude/scripts/dad-daily/repo` 用独立克隆干活并直接推 GitHub——**在 ~/Documents/dad 动手前先 `git pull`** |
 
 ## 规则
 
@@ -28,7 +28,8 @@
 - 写信前读 persona.md 与 memories.md，新往事要对得上生平并追加登记；正文不用 `##` 小标题。
 - 事实性论断必须查证并在「出处」标证据强度；查不到就降级为「我的判断」或删掉。
 - 小红书发在「城北 | AI Coding」的「爸爸的信」合集（原创 + AI 合成声明，meta.json 默认已带）；只存草稿（diao-xhs-publish），发布由用户手点。存草稿前若已声明原创，别再点原创开关（会关掉）。话题写进 post.json 的 `topics`，由发布脚本点选成真话题（规则见 `prompts/xhs.md`）。
+- 可以提前写信（日期填未来）：站点和 RSS 只发布北京时间今天及以前的信，Pages 每天 00:05 定时重建，到日子流水线会补封面、卡片、Kindle 和小红书草稿。
 - 封面画只用 Codex 原生 image_gen（daily.sh 的 `make_cover`），失败时网站有兜底。
 - `git add` 只加本次改动的路径，别用 `-A`（目录里可能有其他会话未完成的文件）。
-- 改 `scripts/daily.sh` 后重新跑 `scripts/install-launchd.sh` 同步副本。
+- 改 `scripts/daily.sh` 或 App Store 的 `xhs-publish-cdp.py` 后重新跑 `scripts/install-launchd.sh` 同步副本。
 - 内容 CC BY-NC-SA 4.0，代码 MIT。
