@@ -5,7 +5,7 @@ export TZ=Asia/Shanghai
 
 STATE="$HOME/.claude/scripts/dad-daily"
 # launchd 进程读不了 ~/Documents（macOS TCC，报 Operation not permitted），
-# 所以定时任务在 dotfolder 里维护一份独立克隆，干完直接推 GitHub；~/Documents/dad 用时先 git pull。
+# 所以定时任务在 dotfolder 里维护一份独立克隆，干完直接推 GitHub；~/Documents/diao/dad 用时先 git pull。
 REPO="$STATE/repo"
 REMOTE=https://github.com/diaojz/dad.git
 export PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
