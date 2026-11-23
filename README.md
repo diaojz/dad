@@ -37,6 +37,8 @@
 
 ## 本地预览与卡片
 
-使用 Node.js 24，运行 `npm ci` 安装依赖，`npm run dev` 启动预览，`npm run build` 生成 GitHub Pages 使用的 `dist/`。
+使用 Node.js 24，运行 `npm ci` 安装依赖，`npm run dev` 启动预览，`npm run build` 生成 GitHub Pages 使用的 `dist/`。构建只收录日期不晚于北京时间今天的信，提前写好的信到日子才会出现在网站和 RSS 里（Pages 每天 00:05 定时重建）。
+
+定时任务由 `scripts/install-launchd.sh` 安装到 macOS launchd，每天触发多次，没做完或失败的步骤下次补做。最后一步存小红书草稿，依赖作者本机的发布脚本和已登录的浏览器，fork 后需要换成你自己的发布方式，或者去掉这一步。
 
 小红书卡片复用本机 Python Playwright Chromium。首次配置可在 Python 虚拟环境中运行 `python -m pip install playwright` 和 `python -m playwright install chromium`。运行 `node site/xhs.mjs YYYY-MM-DD` 重新生成指定日期的卡片，使用虚拟环境时可用 `PYTHON` 指定解释器。
