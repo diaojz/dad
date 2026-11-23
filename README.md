@@ -19,6 +19,7 @@
 ## 怎么读
 
 - 网页：https://diaojz.github.io/dad/
+- 认识爸爸：https://diaojz.github.io/dad/about/
 - RSS：https://diaojz.github.io/dad/feed.xml
 - 小红书：同步发布图文版
 
@@ -28,7 +29,7 @@
 
 ## 它是怎么运转的
 
-`prompts/persona.md` 是爸爸的生平和口吻，`prompts/father.md` 是他写信的原则，`curriculum/memories.md` 记着他讲过的往事（保证前后一致），`son/profile.md` 是他对儿子的了解，`curriculum/ledger.md` 记着讲过什么。每天早上一个定时任务让 Claude 读完这些、查证、写信，再生成网页和小红书卡片。整套提示词都开源在这里，你可以 fork 一份，给你自己——或者给你的孩子——也建一个。
+`prompts/persona.md` 是爸爸的生平和口吻，`prompts/father.md` 是他写信的原则，`curriculum/memories.md` 记着他讲过的往事（保证前后一致），`son/profile.md` 是他对儿子的了解，`curriculum/ledger.md` 记着讲过什么。每天早上一个定时任务让 Claude 读完这些、查证、写信，再按 `prompts/cover.md` 配一幅古典油画封面，生成网页和小红书卡片。整套提示词都开源在这里，你可以 fork 一份，给你自己——或者给你的孩子——也建一个。
 
 ## 许可
 
