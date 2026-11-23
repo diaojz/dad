@@ -1,0 +1,25 @@
+{
+  "title": "我爸记毛病的本子，记到2005年就空了",
+  "content": "「爸爸的信」第四封。\n\n这个栏目里的爸爸是 AI 扮演的：1958 年生，国营无线电厂下岗后开了十几年家电维修铺。他的往事是虚构的，引用的研究是真的，出处附在网页版信末。\n\n卡片里没放的：修好那台彩电，老太太非要塞给他十个鸡蛋，他推不掉，收了。那天晚上他把本子找出来看了半天。本子现在又放回柜子里了，没扔。\n\n他在信里没说该不该用 AI，只说自己是外行，说不出对错。他就是想起那个本子，后头那几十页空着。\n\n信的开头还有一段家常：儿子回信说每周去两次健身房，老伴把回信念了两遍，嘴上说「还行」，晚饭多炒了个菜。\n\n评论区聊聊：你最近一回完全靠自己找出一个 bug，是什么时候？\n\n全文和出处：GitHub 搜 diaojz/dad",
+  "topics": [
+    "爸爸的信",
+    "程序员",
+    "AI编程",
+    "自动化",
+    "认知升级"
+  ],
+  "images": [
+    "/Users/diaoye/.claude/scripts/dad-daily/repo/xhs/2026-11-24/01.png",
+    "/Users/diaoye/.claude/scripts/dad-daily/repo/xhs/2026-11-24/02.png",
+    "/Users/diaoye/.claude/scripts/dad-daily/repo/xhs/2026-11-24/03.png",
+    "/Users/diaoye/.claude/scripts/dad-daily/repo/xhs/2026-11-24/04.png",
+    "/Users/diaoye/.claude/scripts/dad-daily/repo/xhs/2026-11-24/05.png",
+    "/Users/diaoye/.claude/scripts/dad-daily/repo/xhs/2026-11-24/06.png",
+    "/Users/diaoye/.claude/scripts/dad-daily/repo/xhs/2026-11-24/07.png"
+  ],
+  "settings": {
+    "collection": "爸爸的信",
+    "original": true,
+    "ai_synthetic": true
+  }
+}
