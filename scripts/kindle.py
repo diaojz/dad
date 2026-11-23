@@ -38,5 +38,5 @@ print(f"已生成 {OUT}（{len(items)} 封）")
 if copy:
     if not KINDLE.is_dir():
         sys.exit("没找到 /Volumes/Kindle：请用 USB 连上 Kindle 并在 Kindle 上确认「传输文件」")
-    shutil.copy2(OUT, KINDLE / OUT.name)
+    shutil.copyfile(OUT, KINDLE / OUT.name)  # 不带 xattr，免得生成 ._ 文件
     print(f"已拷入 Kindle：{KINDLE / OUT.name}，拔线后在书库里打开《爸爸的信》")
