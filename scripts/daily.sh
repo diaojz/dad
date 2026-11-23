@@ -232,7 +232,7 @@ if [[ ! -f "$kindle" ]]; then
   if { [[ -s dist/feed.xml ]] || npm run build; } && python3 -I scripts/kindle.py; then
     touch "$kindle"
   else
-    echo 'Kindle 推送失败，下次运行会补发'
+    echo 'Kindle 电子书生成失败，下次运行会重试'
   fi
 fi
 

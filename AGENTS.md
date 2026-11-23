@@ -18,7 +18,7 @@
 | `letters/` | 每日信件 `YYYY-MM-DD-slug.md` |
 | `xhs/<date>/` | 小红书改编稿 post.json + 渲染卡片（png 不入库） |
 | `site/` | 静态站构建 + 小红书卡片渲染器；`site/static/covers/` 封面图，`site/static/father.jpg` 爸爸页画像 |
-| `scripts/kindle.py` | 把 RSS 里未推送的信做成 EPUB 发 Kindle（daily.sh 末尾调用，已发记录在 `~/.claude/scripts/dad-daily/kindle-sent.txt`） |
+| `scripts/kindle.py` | 把 RSS 全部信合成一本《爸爸的信》AZW3 到 `~/.claude/scripts/dad-daily/kindle/`（daily.sh 每天重建）；USB 连上 Kindle 后跑 `python3 -I scripts/kindle.py --copy` 拷入（邮件推送收不到，已弃用） |
 | `share/moments/` | 朋友圈推广素材（配图 + 文案） |
 | `scripts/daily.sh` | 每日流水线；安装副本在 `~/.claude/scripts/dad-daily/run.sh`（launchd 每日多次触发，按 `done` 标记补做并重试网络操作，末尾用 `scripts/xhs_draft.py` 自动存小红书草稿，发布仍由用户手点）。launchd 读不了 ~/Documents，所以它在 `~/.claude/scripts/dad-daily/repo` 用独立克隆干活并直接推 GitHub——**在 ~/Documents/dad 动手前先 `git pull`** |
 
