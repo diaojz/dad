@@ -1,4 +1,22 @@
+# 依赖与构建产物
 node_modules/
 dist/
+
+# 小红书渲染卡片（每日流水线生成，不入库）
 xhs/**/*.png
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# 环境与密钥
+.env
+.env.*
+
+# 系统 / 编辑器
 .DS_Store
+.idea/
+.vscode/
+*.swp
+*.log
