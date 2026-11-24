@@ -5,7 +5,7 @@ state="$HOME/.claude/scripts/dad-daily"
 agents="$HOME/Library/LaunchAgents"
 label=com.diaojz.dad-daily
 domain="gui/$(id -u)"
-publisher="/Users/diaoye/Documents/BD/App Store/xhs/xhs-publish-cdp.py"
+publisher="/Users/diaoye/Documents/diao/media/xhs/xhs-publish-cdp.py"
 
 if [[ ! -f "$publisher" ]]; then
   printf '找不到发布脚本：%s\n' "$publisher" >&2
