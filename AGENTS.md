@@ -35,3 +35,5 @@
 - `git add` 只加本次改动的路径，别用 `-A`（目录里可能有其他会话未完成的文件）。
 - 改 `scripts/daily.sh` 或 `~/Documents/diao/media/xhs/xhs-publish-cdp.py` 后重新跑 `scripts/install-launchd.sh` 同步副本。
 - 内容 CC BY-NC-SA 4.0，代码 MIT。
+
+- 移动端适配回归：改站点后跑 `python3 scripts/mobile-matrix.py <站点根URL含base> <截图目录> <文章路径> [关于页路径]`（需先把 dist 软链到与 base 同名子目录并用 `python3 -m http.server` 提供）。覆盖 12 种手机/iPad 尺寸 × 微信/飞书 UA × 关 JS，查横向溢出、字号、点击区域、图片、控制台；Chromium 模拟不能代替真机，上线后需在真微信/飞书里再看一眼。

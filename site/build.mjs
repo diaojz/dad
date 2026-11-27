@@ -1,9 +1,10 @@
-import { mkdir, rm, writeFile, copyFile, access } from 'node:fs/promises';
+import { mkdir, rm, writeFile, copyFile, access, readFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { marked } from 'marked';
+import { transform } from 'lightningcss';
 import sharp from 'sharp';
-import { coverFile, fontCSS, issue, titleLines } from './visuals.mjs';
+import { coverFile, issue, titleLines } from './visuals.mjs';
 import { loadLetters } from './letters.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -42,21 +43,28 @@ const imageTag = (letter, thumb = false) => letter.hasCover
   ? `<img src="${coverPath(letter, thumb)}" decoding="async" alt="${thumb ? '' : esc(letter.cover ?? '')}" ${thumb ? 'loading="lazy"' : 'fetchpriority="high"'}>`
   : `<span class="cover-placeholder" aria-hidden="true"><span>${issue(letter)}</span></span>`;
 
-function page(title, content, letter, { reading = false, father = false } = {}) {
-  const socialImage = letter?.hasCover ? origin + coverPath(letter) : null;
+function page(title, content, letter, { reading = false, father = false, missing = false } = {}) {
+  const socialImage = origin + BASE + 'share/' + (letter?.hasCover ? encodeURIComponent(letter.slug) : 'site') + '.jpg';
+  const url = origin + (reading ? letterPath(letter) : BASE + (father ? 'about/' : missing ? '404.html' : ''));
+  const description = father ? introduction : missing ? '找不到这封信，可以返回首页查看往期来信。' : letter?.hook ?? subtitle;
   return `<!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="format-detection" content="telephone=no, date=no, email=no, address=no">
+<meta name="color-scheme" content="light dark"><meta name="theme-color" content="#1d1815" media="(prefers-color-scheme: dark)"><meta name="theme-color" content="#f2e9db">
+<link rel="apple-touch-icon" sizes="180x180" href="${BASE}icon.png"><link rel="icon" type="image/png" href="${BASE}icon.png">
 <title>${esc(title)}</title>
 <link rel="icon" href="${BASE}envelope.svg" type="image/svg+xml">
-<link rel="stylesheet" href="${fontCSS}"><link rel="stylesheet" href="${BASE}style.css">
-<meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(letter?.hook ?? subtitle)}">
-<meta name="twitter:card" content="${socialImage ? 'summary_large_image' : 'summary'}">
-${socialImage ? `<meta property="og:image" content="${esc(socialImage)}"><meta name="twitter:image" content="${esc(socialImage)}">` : ''}
+<link rel="stylesheet" href="${BASE}fonts/font.css"><link rel="stylesheet" href="${BASE}style.css">
+<meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(description)}">
+<meta property="og:type" content="${reading ? 'article' : 'website'}"><meta property="og:url" content="${esc(url)}"><meta property="og:site_name" content="${name}">
+<meta property="og:image" content="${esc(socialImage)}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="${esc(socialImage)}">
 <link rel="alternate" type="application/rss+xml" title="${name}" href="${BASE}feed.xml"></head>
 <body><div class="frame"><header class="masthead">${reading ? '<div class="reading-progress" aria-hidden="true"></div>' : ''}<a class="brand" href="${BASE}"><img src="${BASE}envelope.svg" alt="">${name}</a>
 <nav aria-label="站点"><a href="${BASE}#archive">往期</a><a href="${BASE}about/"${father ? ' aria-current="page"' : ''}>爸爸</a><a href="${BASE}feed.xml">RSS</a><a href="${github}">GitHub</a></nav></header>
 <main>${content}</main><footer class="site-footer"><p>一个 AI 扮演的父亲，每天写给一个写了十几年代码的儿子，只讲一个认知。</p>
-<a href="${github}/blob/main/prompts/father.md">父亲的性格写在 prompts/father.md，全部开源 ↗</a></footer></div></body></html>`;
+<a href="${github}/blob/main/prompts/father.md">父亲的性格写在 prompts/father.md，全部开源 ↗</a></footer></div></body></html>`.replace(/<a\b[^>]*?\bhref="((?:https?:)?\/\/[^"]+)"/gi, (tag, href) =>
+    new URL(href, origin).origin === origin ? tag : tag + ' rel="noopener noreferrer"');
 }
 
 const details = letter => `<p class="details">[ 第 ${issue(letter)} 封 · <time datetime="${esc(letter.date)}">${letter.date.replaceAll('-', '.')}</time> · ${esc(domainName(letter.domain))} · ${esc(letter.kind)} ]</p>`;
@@ -198,6 +206,16 @@ const letters = (await loadLetters(root)).filter(letter => letter.date <= today)
 
 await rm(dist, { force: true, recursive: true });
 await mkdir(join(dist, 'covers', 'thumbs'), { recursive: true });
+await mkdir(join(dist, 'share'));
+async function shareImage(source, slug) {
+  for (const quality of [82, 68, 50, 32, 18]) {
+    const data = await sharp(source).resize(1200, 630).jpeg({ quality }).toBuffer();
+    if (data.length < 300000) return write('share/' + slug + '.jpg', data);
+  }
+  throw new Error('分享图超过 300 KB');
+}
+await shareImage(join(here, 'static', 'father.jpg'), 'site');
+await sharp(join(here, 'static', 'envelope.svg')).resize(180, 180).flatten({ background: '#f2e9db' }).png().toFile(join(dist, 'icon.png'));
 await Promise.all(letters.map(async letter => {
   // 第 6 封起有明亮水彩版（-xhs），网页优先用它；更早的信继续用油画，形成过渡。
   const watercolor = coverFile(root, letter.slug + '-xhs');
@@ -212,6 +230,7 @@ await Promise.all(letters.map(async letter => {
   await sharp(source).resize(640, null, { withoutEnlargement: true })
     .jpeg({ quality: 80 }).toFile(join(dist, 'covers', 'thumbs', letter.slug + '.jpg'));
   letter.preview = await makePreview(source);
+  await shareImage(source, letter.slug);
   letter.hasCover = true;
 }));
 await copyFile(join(here, 'static', 'envelope.svg'), join(dist, 'envelope.svg'));
@@ -225,7 +244,7 @@ try {
   if (error.code !== 'ENOENT') throw error;
 }
 await write('about/index.html', page('爸爸是谁 · ' + name, fatherPage(fatherPreview), null, { father: true }));
-await write('404.html', page('找不到这封信 · ' + name, `<section class="hero"><h1>找不到这封信</h1><a class="button" href="${BASE}">返回首页</a></section>`));
+await write('404.html', page('找不到这封信 · ' + name, `<section class="hero"><h1>找不到这封信</h1><a class="button" href="${BASE}">返回首页</a></section>`, null, { missing: true }));
 for (const [index, letter] of letters.entries()) {
   await write(join('letters', letter.slug, 'index.html'), renderLetter(letter, letters[index + 1], letters[index - 1]));
 }
@@ -235,5 +254,17 @@ ${letters.map(letter => {
   const url = esc(origin + letterPath(letter));
   return `<item><title>${esc(letter.title)}</title><link>${url}</link><guid>${url}</guid><pubDate>${new Date(letter.date).toUTCString()}</pubDate><description>${esc(marked.parse(letter.body))}</description></item>`;
 }).join('\n')}</channel></rss>`);
-for (const asset of ['style.css', 'archive.js', 'reading.js']) await copyFile(join(here, asset), join(dist, asset));
+const fontRoot = join(here, '../node_modules/lxgw-wenkai-screen-webfont');
+const fontSheet = await readFile(join(fontRoot, 'lxgwwenkaiscreenr.css'), 'utf8');
+await write('fonts/font.css', fontSheet);
+await mkdir(join(dist, 'fonts/files'));
+for (const [, file] of fontSheet.matchAll(/url\('\.\/(files\/[^']+)'\)/g)) {
+  await copyFile(join(fontRoot, file), join(dist, 'fonts', file));
+}
+await copyFile(join(fontRoot, 'OFL.txt'), join(dist, 'fonts/OFL.txt'));
+const css = await readFile(join(here, 'style.css'));
+await write('style.css', transform({ filename: 'style.css', code: css,
+  targets: { ios_saf: 12 << 16, chrome: 66 << 16, android: 7 << 16 }
+}).code);
+for (const asset of [ 'archive.js', 'reading.js']) await copyFile(join(here, asset), join(dist, asset));
 console.log(`已构建 ${letters.length} 封信 · ${BASE} · ${dist}`);
