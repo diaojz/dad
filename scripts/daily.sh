@@ -213,11 +213,13 @@ make_cover_xhs() {
 if [[ ! -f "$pushed" ]]; then
   slug="${letters[0]##*/}"
   cover="site/static/covers/${slug%.md}.jpg"
-  if [[ ! -s "$cover" ]]; then
-    make_cover "${letters[0]}" "$cover" || echo "封面生成失败，继续构建：$cover"
+  # 第 6 封起只画明亮水彩（网页与小红书共用）；水彩失败才回退画油画兜底，省一次出图额度。
+  if [[ ! -s "${cover%.jpg}-xhs.jpg" && ! -s "$cover" ]]; then
+    make_cover_xhs "${letters[0]}" "${cover%.jpg}-xhs.jpg" || {
+      echo "水彩封面生成失败，回退油画兜底：$cover"
+      make_cover "${letters[0]}" "$cover" || echo "封面生成失败，继续构建：$cover"
+    }
   fi
-
-  make_cover_xhs "${letters[0]}" "${cover%.jpg}-xhs.jpg" || echo "小红书封面生成失败，使用原封面"
 
   node site/xhs.mjs "$today" || echo '小红书卡片渲染失败，继续构建站点'
   npm run build || fail '站点构建失败，今天的信未同步'
