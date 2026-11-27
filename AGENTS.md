@@ -30,6 +30,7 @@
 - 小红书发在「城北 | AI Coding」的「爸爸的信」合集（原创 + AI 合成声明，meta.json 默认已带）；只存草稿（`red-publish`），发布由用户手点。存草稿前若已声明原创，别再点原创开关（会关掉）。话题写进 post.json 的 `topics`，由发布脚本点选成真话题（规则见 `prompts/xhs.md`）。
 - 可以提前写信（日期填未来）：站点和 RSS 只发布北京时间今天及以前的信，Pages 每天 00:05 定时重建，到日子流水线会补封面、卡片、Kindle 和小红书草稿。
 - 封面画只用 Codex 原生 image_gen（daily.sh 的 `make_cover`），失败时网站有兜底。
+- 小红书配图走明亮淡彩水彩风（2026-11-26 用户定：油画版太阴暗）：封面规则 `prompts/cover-xhs.md`，图存 `site/static/covers/<slug>-xhs.jpg`（`make_cover_xhs`），卡片样式 `site/xhs.css`；网站头图仍用油画。
 - `git add` 只加本次改动的路径，别用 `-A`（目录里可能有其他会话未完成的文件）。
 - 改 `scripts/daily.sh` 或 `~/Documents/diao/media/xhs/xhs-publish-cdp.py` 后重新跑 `scripts/install-launchd.sh` 同步副本。
 - 内容 CC BY-NC-SA 4.0，代码 MIT。

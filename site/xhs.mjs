@@ -23,10 +23,12 @@ if (!requiredText(post.title) || !requiredText(post.content) ||
 if (!/^letters\/[^/\\]+\.md$/.test(post.letter ?? '')) throw new Error('post.json 的 letter 必须指向 letters/ 下的信件');
 const letter = await readLetter(join(root, post.letter));
 const signature = '城北 · 爸爸的信';
-const painting = await readFile(coverFile(root, basename(post.letter, '.md'))).catch(error => {
+const slug = basename(post.letter, '.md');
+const readCover = name => readFile(coverFile(root, name)).catch(error => {
   if (error.code === 'ENOENT') return null;
   throw error;
 });
+const painting = await readCover(slug + '-xhs') ?? await readCover(slug);
 const artwork = painting
   ? `<div class="art"><img src="data:image/jpeg;base64,${painting.toString('base64')}" alt=""></div>`
   : `<div class="art placeholder"><span>${issue(letter)}</span></div>`;

@@ -158,14 +158,14 @@ make_cover() {
   local letter="$1" target="$2" prompt staging generated
   staging="$(mktemp -d "$REPO/.cover-XXXXXX")" || return 1
   generated="$staging/${target##*/}"
-  prompt="$(node --input-type=module - "$letter" "$generated" <<'NODE'
+  prompt="$(node --input-type=module - "$letter" "$generated" "${3:-prompts/cover.md}" <<'NODE'
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { readLetter } from './site/letters.mjs';
 
 const letter = await readLetter(process.argv[2]);
 if (!letter.cover) process.exit(0);
-const rules = await readFile('prompts/cover.md', 'utf8');
+const rules = await readFile(process.argv[4], 'utf8');
 const start = rules.indexOf('## 统一画风');
 const end = rules.indexOf('## 每封信的场景', start);
 if (start < 0 || end < 0) throw new Error('未找到封面画风与构图');
@@ -206,12 +206,18 @@ NODE
   return 1
 }
 
+make_cover_xhs() {
+  [[ -s "$2" ]] || make_cover "$1" "$2" prompts/cover-xhs.md
+}
+
 if [[ ! -f "$pushed" ]]; then
   slug="${letters[0]##*/}"
   cover="site/static/covers/${slug%.md}.jpg"
   if [[ ! -s "$cover" ]]; then
     make_cover "${letters[0]}" "$cover" || echo "封面生成失败，继续构建：$cover"
   fi
+
+  make_cover_xhs "${letters[0]}" "${cover%.jpg}-xhs.jpg" || echo "小红书封面生成失败，使用原封面"
 
   node site/xhs.mjs "$today" || echo '小红书卡片渲染失败，继续构建站点'
   npm run build || fail '站点构建失败，今天的信未同步'
