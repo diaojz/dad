@@ -29,7 +29,7 @@
 
 ## 它是怎么运转的
 
-`prompts/persona.md` 是爸爸的生平和口吻，`prompts/father.md` 是他写信的原则，`curriculum/memories.md` 记着他讲过的往事（保证前后一致），`son/profile.md` 是他对儿子的了解，`curriculum/ledger.md` 记着讲过什么。每天早上一个定时任务让 Claude 读完这些、查证、写信，再按 `prompts/cover.md` 配一幅古典油画封面，生成网页和小红书卡片。整套提示词都开源在这里，你可以 fork 一份，给你自己——或者给你的孩子——也建一个。
+`prompts/persona.md` 是爸爸的生平和口吻，`prompts/father.md` 是他写信的原则，`curriculum/memories.md` 记着他讲过的往事（保证前后一致），`son/profile.md` 是他对儿子的了解，`curriculum/ledger.md` 记着讲过什么。每天早上一个定时任务让 Claude 读完这些、查证、写信，再按 `prompts/cover-xhs.md` 配一幅明亮淡彩水彩封面（前 5 封是 `prompts/cover.md` 的古典油画），生成网页和小红书卡片。整套提示词都开源在这里，你可以 fork 一份，给你自己——或者给你的孩子——也建一个。
 
 ## 许可
 

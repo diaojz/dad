@@ -8,7 +8,8 @@
 |---|---|
 | `prompts/persona.md` | 爸爸的人设：生平时间线、口吻、禁忌（虚构人物，往事可编、研究必须真） |
 | `prompts/father.md` | 写信原则与写作宪法（灵魂文件，慎改） |
-| `prompts/cover.md` | 每封封面油画的统一画风与构图；信件 frontmatter `cover` 写场景 |
+| `prompts/cover.md` | 油画封面的画风与构图（前 5 封及无水彩图时的兜底）；信件 frontmatter `cover` 写场景 |
+| `prompts/cover-xhs.md` | 明亮淡彩水彩封面的画风与构图（第 6 封起，网页和小红书共用） |
 | `prompts/daily.md` | 每日写信任务指令（`claude -p` 无人值守执行） |
 | `prompts/xhs.md` | 小红书改编规则 |
 | `son/profile.md` | 儿子画像（公开，不写公司/项目/家人姓名） |
@@ -30,7 +31,7 @@
 - 小红书发在「城北 | AI Coding」的「爸爸的信」合集（原创 + AI 合成声明，meta.json 默认已带）；只存草稿（`red-publish`），发布由用户手点。存草稿前若已声明原创，别再点原创开关（会关掉）。话题写进 post.json 的 `topics`，由发布脚本点选成真话题（规则见 `prompts/xhs.md`）。
 - 可以提前写信（日期填未来）：站点和 RSS 只发布北京时间今天及以前的信，Pages 每天 00:05 定时重建，到日子流水线会补封面、卡片、Kindle 和小红书草稿。
 - 封面画只用 Codex 原生 image_gen（daily.sh 的 `make_cover`），失败时网站有兜底。
-- 小红书配图走明亮淡彩水彩风（2026-11-26 用户定：油画版太阴暗）：封面规则 `prompts/cover-xhs.md`，图存 `site/static/covers/<slug>-xhs.jpg`（`make_cover_xhs`），卡片样式 `site/xhs.css`；网站头图仍用油画。
+- 第 6 封起封面走明亮淡彩水彩（2026-11-26 用户定：油画版太阴暗）：规则 `prompts/cover-xhs.md`，图存 `site/static/covers/<slug>-xhs.jpg`（`make_cover_xhs`），卡片样式 `site/xhs.css`；网页和小红书都优先用它，没有才回退 `<slug>.jpg` 油画。前 5 封保留油画不重画，「爸爸是谁」页有说明。
 - `git add` 只加本次改动的路径，别用 `-A`（目录里可能有其他会话未完成的文件）。
 - 改 `scripts/daily.sh` 或 `~/Documents/diao/media/xhs/xhs-publish-cdp.py` 后重新跑 `scripts/install-launchd.sh` 同步副本。
 - 内容 CC BY-NC-SA 4.0，代码 MIT。
