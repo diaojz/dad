@@ -1,4 +1,4 @@
-import { mkdir, rm, writeFile, copyFile } from 'node:fs/promises';
+import { mkdir, rm, writeFile, copyFile, access } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { marked } from 'marked';
@@ -177,7 +177,8 @@ function fatherPage(preview) {
 ${preview ? `<figure class="art father-art"${previewStyle(preview)}><img src="${BASE}father.jpg" width="1200" height="900" decoding="async" alt="冬日下午，爸爸背对着我们，在县城老房子的窗边写信"></figure>` : ''}
 <div class="letter-paper father-intro prose"><p class="salutation">儿子：</p><p>${introduction}</p></div></div>
 <section class="father-history"><h2>这些年</h2><ol class="timeline">${life.map(([year, story]) => `<li><span>${year}</span><p>${story}</p></li>`).join('')}</ol></section>
-<p class="father-disclosure">爸爸是 AI 扮演的虚构人物。他的往事是虚构的，信里引用的研究都是真的。性格写在 <a href="${github}/tree/main/prompts">prompts/</a> 里，全部开源。</p></article>`;
+<p class="father-disclosure">爸爸是 AI 扮演的虚构人物。他的往事是虚构的，信里引用的研究都是真的。性格写在 <a href="${github}/tree/main/prompts">prompts/</a> 里，全部开源。</p>
+<p class="father-disclosure">关于封面：前五封是深色油画，读起来偏沉；从第 6 封起换成明亮的淡彩水彩。旧的不重画，留着当个记号。</p></article>`;
 }
 
 async function makePreview(source) {
@@ -198,7 +199,9 @@ const letters = (await loadLetters(root)).filter(letter => letter.date <= today)
 await rm(dist, { force: true, recursive: true });
 await mkdir(join(dist, 'covers', 'thumbs'), { recursive: true });
 await Promise.all(letters.map(async letter => {
-  const source = coverFile(root, letter.slug);
+  // 第 6 封起有明亮水彩版（-xhs），网页优先用它；更早的信继续用油画，形成过渡。
+  const watercolor = coverFile(root, letter.slug + '-xhs');
+  const source = await access(watercolor).then(() => watercolor, () => coverFile(root, letter.slug));
   const target = join(dist, 'covers', letter.slug + '.jpg');
   try {
     await copyFile(source, target);
